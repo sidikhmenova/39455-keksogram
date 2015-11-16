@@ -81,7 +81,6 @@
     redraw: function() {
       // Очистка изображения.
       this._ctx.clearRect(0, 0, this._container.width, this._container.height);
-
       // Параметры линии.
       // NB! Такие параметры сохраняются на время всего процесса отрисовки
       // canvas'a поэтому важно вовремя поменять их, если нужно начать отрисовку
@@ -111,14 +110,60 @@
       // Координаты задаются от центра холста.
       this._ctx.drawImage(this._image, displX, displY);
 
+      //// Накладываем на фотографию полупрозрачный слой (нужен для отображения отсекаемой области)
+      //this._ctx.fillStyle = "rgba(0, 0, 200, 0.5)";
+      //this._ctx.fillRect(displX,displY,this._image.naturalWidth,this._image.naturalHeight);
+      //
+      //// устанавливаем композицию
+      //this._ctx.globalCompositeOperation = 'xor';
+      //
+      //// Исключаем область из полупрозрачного слоя (область, которая будет загружена)
+      //this._ctx.fillStyle = "rgba(0, 0, 200, 1)";
+      //this._ctx.fillRect(
+      //    (-this._resizeConstraint.side / 2) - this._ctx.lineWidth,
+      //    (-this._resizeConstraint.side / 2) - this._ctx.lineWidth,
+      //    this._resizeConstraint.side + this._ctx.lineWidth/2,
+      //    this._resizeConstraint.side + this._ctx.lineWidth/2);
+
+      // Способ 2
+      // Полупрозрачная область, закрывающая часть фото
+      this._ctx.moveTo(displX, displY);
+      this._ctx.lineTo(this._image.naturalWidth, displY);
+      this._ctx.lineTo(this._image.naturalWidth,this._image.naturalHeight);
+      this._ctx.lineTo(displX, this._image.naturalHeight);
+      this._ctx.lineTo(displX, displY);
+      this._ctx.closePath();
+
+      // Видимая часть фото
+      var dropX1 = (-this._resizeConstraint.side / 2) - this._ctx.lineWidth;
+      var dropX2 = this._resizeConstraint.side/2-this._ctx.lineWidth/2;
+      var dropY1 = (-this._resizeConstraint.side / 2) - this._ctx.lineWidth;
+      var dropY2 = this._resizeConstraint.side/2-this._ctx.lineWidth/2;
+
+      this._ctx.moveTo(dropX1, dropY1);
+      this._ctx.lineTo(dropX1, dropY2);
+      this._ctx.lineTo(dropX2, dropY2);
+      this._ctx.lineTo(dropX2, dropY1);
+      this._ctx.lineTo(dropX1, dropY1);
+      this._ctx.closePath();
+
+      this._ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+      this._ctx.fill();
+
+
       // Отрисовка прямоугольника, обозначающего область изображения после
-      // кадрирования. Координаты задаются от центра.
+      // кадрирования. Коо0рдинаты задаются от центра.
       this._ctx.strokeRect(
           (-this._resizeConstraint.side / 2) - this._ctx.lineWidth / 2,
           (-this._resizeConstraint.side / 2) - this._ctx.lineWidth / 2,
           this._resizeConstraint.side - this._ctx.lineWidth / 2,
           this._resizeConstraint.side - this._ctx.lineWidth / 2);
 
+      // Текст над обрезаемой областью, который информирует о размере изображения
+      this._ctx.fillStyle = "white";
+      this._ctx.textAlign = "center";
+      this._ctx.font = '14px Arial';
+      this._ctx.fillText(this._image.naturalWidth + ' x ' + this._image.naturalHeight,0,(-this._resizeConstraint.side / 2) - 10 );
       // Восстановление состояния канваса, которое было до вызова ctx.save
       // и последующего изменения системы координат. Нужно для того, чтобы
       // следующий кадр рисовался с привычной системой координат, где точка
