@@ -87,7 +87,7 @@
       // чего-либо с другой обводкой.
 
       // Толщина линии.
-      this._ctx.lineWidth = 6;
+      this._ctx.lineWidth = 2;
       // Цвет обводки.
       this._ctx.strokeStyle = '#ffe753';
       // Размер штрихов. Первый элемент массива задает длину штриха, второй
@@ -127,37 +127,109 @@
 
       // Способ 2
       // Полупрозрачная область, закрывающая часть фото
-      this._ctx.moveTo(displX, displY);
-      this._ctx.lineTo(this._image.naturalWidth, displY);
-      this._ctx.lineTo(this._image.naturalWidth,this._image.naturalHeight);
-      this._ctx.lineTo(displX, this._image.naturalHeight);
-      this._ctx.lineTo(displX, displY);
+      // Все размеры указаны относительно осей X и Y,
+      // где X1 - минимальное значение X на холсте,
+      // а X2 - максимальное значение соответственно
+      var fillX1 = -(this._image.naturalWidth / 2);
+      var fillY1 = -(this._image.naturalHeight / 2);
+      var fillX2 = (this._image.naturalWidth / 2);
+      var fillY2 = (this._image.naturalHeight / 2);
+
+      this._ctx.moveTo(fillX1, fillY1);
+      this._ctx.lineTo(fillX2, fillY1);
+      this._ctx.lineTo(fillX2, fillY2);
+      this._ctx.lineTo(fillX1, fillY2);
+      this._ctx.lineTo(fillX1, fillY1);
       this._ctx.closePath();
 
-      // Видимая часть фото
-      var dropX1 = (-this._resizeConstraint.side / 2) - this._ctx.lineWidth;
-      var dropX2 = this._resizeConstraint.side/2-this._ctx.lineWidth/2;
-      var dropY1 = (-this._resizeConstraint.side / 2) - this._ctx.lineWidth;
-      var dropY2 = this._resizeConstraint.side/2-this._ctx.lineWidth/2;
+      // Рамка, по которую будет обрезано фото
+      var cropX1 = -(this._resizeConstraint.side / 2) - this._ctx.lineWidth;
+      var cropY1 = -(this._resizeConstraint.side / 2) - this._ctx.lineWidth;
+      var cropX2 = this._resizeConstraint.side / 2 - this._ctx.lineWidth/2;
+      var cropY2 = this._resizeConstraint.side /2 - this._ctx.lineWidth/2;
 
-      this._ctx.moveTo(dropX1, dropY1);
-      this._ctx.lineTo(dropX1, dropY2);
-      this._ctx.lineTo(dropX2, dropY2);
-      this._ctx.lineTo(dropX2, dropY1);
-      this._ctx.lineTo(dropX1, dropY1);
+      this._ctx.moveTo(cropX1, cropY1);
+      this._ctx.lineTo(cropX1, cropY2);
+      this._ctx.lineTo(cropX2, cropY2);
+      this._ctx.lineTo(cropX2, cropY1);
+      this._ctx.lineTo(cropX1, cropY1);
       this._ctx.closePath();
 
       this._ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
       this._ctx.fill();
 
-
       // Отрисовка прямоугольника, обозначающего область изображения после
-      // кадрирования. Коо0рдинаты задаются от центра.
-      this._ctx.strokeRect(
-          (-this._resizeConstraint.side / 2) - this._ctx.lineWidth / 2,
-          (-this._resizeConstraint.side / 2) - this._ctx.lineWidth / 2,
-          this._resizeConstraint.side - this._ctx.lineWidth / 2,
-          this._resizeConstraint.side - this._ctx.lineWidth / 2);
+      // кадрирования. Координаты задаются от центра.
+      // Способ отрисовки - пунктир
+      //this._ctx.strokeRect(
+      //    (-this._resizeConstraint.side / 2) - this._ctx.lineWidth / 2,
+      //    (-this._resizeConstraint.side / 2) - this._ctx.lineWidth / 2,
+      //    this._resizeConstraint.side - this._ctx.lineWidth / 2,
+      //    this._resizeConstraint.side - this._ctx.lineWidth / 2);
+
+      // Отрисовка прямоугольника отсекаемой области зиг-загом
+      //шаг для зигзага
+      var step= 0;
+      var b = 10;
+
+      // Начало координат для линии вправо (Линия1)
+      var xLineRight = cropX1 + b/2;
+      var yLineRight = cropY1 + b/2;
+      // Параллельная линия (Линия2)
+      var yLineRight2 = cropY2 + b/2;
+
+      // Начало координат для линии вниз (Линия3)
+      var xLineDown = cropX1 + b/2;
+      var yLineDown = cropY1 + b/2;
+      // Параллельная линия (Линия4)
+      var xLineDown2 = cropX2 + b/2;
+
+      var countStep = this._resizeConstraint.side / (b/1.5);
+
+      for (var i = 0; i < countStep; i++) {
+        //если четное
+        if(i%2 == 0){
+          step = -b;
+        }
+        //если нечетное
+        else{
+          step = b;
+        }
+        this._ctx.beginPath();
+        //рисуем линию1
+        this._ctx.moveTo(xLineRight, yLineRight);
+        this._ctx.lineTo(xLineRight + b, yLineRight + step);
+        this._ctx.closePath();
+        this._ctx.stroke();
+
+        //рисуем линию2
+        this._ctx.moveTo(xLineRight, yLineRight2);
+        this._ctx.lineTo(xLineRight + b,yLineRight2 + step);
+        this._ctx.closePath();
+        this._ctx.stroke();
+
+        //рисуем линию3
+        this._ctx.moveTo(xLineDown, yLineDown);
+        this._ctx.lineTo(xLineDown + step, yLineDown + b);
+        this._ctx.closePath();
+        this._ctx.stroke();
+
+        //рисуем линию4
+        this._ctx.moveTo(xLineDown2, yLineDown);
+        this._ctx.lineTo(xLineDown2 + step, yLineDown + b);
+        this._ctx.closePath();
+        this._ctx.stroke();
+
+        //увеличиваем шаг для Линии1 и Линии2
+        xLineRight = xLineRight + b/1.5;
+        yLineRight = yLineRight + step/1.5;
+        yLineRight2 = yLineRight2 + step/1.5;
+
+        //увеличиваем шаг для Линии3 и Линии4
+        xLineDown = xLineDown + step/1.5;
+        yLineDown = yLineDown + b/1.5;
+        xLineDown2 = xLineDown2 + step/1.5;
+      }
 
       // Текст над обрезаемой областью, который информирует о размере изображения
       this._ctx.fillStyle = "white";
