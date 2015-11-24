@@ -68,11 +68,35 @@
   }
 
   /**
+   * Заполнение значениями по-умолчанию.
+   * Значения берутся из параметров картинки и вычисляемого значения side,
+   * вычисляемого в файле resizer.js
+   */
+  function setDefaultValues() {
+    if (currentResizer) {
+      resizeForm['resize-x'].value = currentResizer._resizeConstraint.x;
+      resizeForm['resize-y'].value = currentResizer._resizeConstraint.y;
+      resizeForm['resize-size'].value = currentResizer._resizeConstraint.side;
+    }
+  }
+
+  /**
    * Проверяет, валидны ли данные, в форме кадрирования.
    * @return {boolean}
    */
   function resizeFormIsValid() {
-    return true;
+    //return true;
+
+    //значения полей ввода. Т.е. считаваем заполненные поля ввода
+    var resizeX = resizeForm['resize-x'].value;
+    var resizeY = resizeForm['resize-y'].value;
+    var resizeSize = resizeForm['resize-size'].value;
+
+    //минимальные значения для полей
+    //resizeX.min = -(currentResizer._image.naturalWidth/2);
+    return (+resizeX > 0 && +resizeY > 0 && +resizeSize > 0) &&
+        (+resizeX + +resizeSize <= currentResizer._image.naturalWidth) &&
+        (+resizeY + +resizeSize <= currentResizer._image.naturalHeight);
   }
 
   /**
@@ -120,6 +144,11 @@
         isError = true;
         message = message || 'Неподдерживаемый формат файла<br> <a href="' + document.location + '">Попробовать еще раз</a>.';
         break;
+
+      case Action.resizeForm:
+        isError = true;
+        message = message || 'Данные для кадрирования не корректны<br> <a href="' + document.location + '">Попробовать еще раз</a>.';
+        break;
     }
 
     uploadMessage.querySelector('.upload-message-container').innerHTML = message;
@@ -160,6 +189,8 @@
           resizeForm.classList.remove('invisible');
 
           hideMessage();
+          // Объект currentResizer заполняется не сразу, поэтому использован небольшой таймаут
+          setTimeout(setDefaultValues, 20);
         };
 
         fileReader.readAsDataURL(element.files[0]);
@@ -199,6 +230,46 @@
 
       resizeForm.classList.add('invisible');
       filterForm.classList.remove('invisible');
+    }
+    else {
+      // Показ сообщения об ошибке, если не валидны значения для кадрирования изображения
+      showMessage(Action.resizeForm);
+    }
+  };
+
+  /**
+   * Блокировка кнопки кадрирования, если введены не валидные данные
+   */
+
+  var btnSubmitResize = resizeForm.querySelector('[type="submit"]');
+
+  resizeForm.onchange = function() {
+    var resizeSize = resizeForm['resize-size'].value;
+    var resizeX = resizeForm['resize-x'].value;
+    var resizeY = resizeForm['resize-x'].value;
+
+    var resizeSizeX = document.getElementById('resize-x');
+    var resizeSizeY = document.getElementById('resize-y');
+    var resizeSizeInput = document.getElementById('resize-size');
+
+    if (resizeFormIsValid()) {
+      btnSubmitResize.removeAttribute('disabled');
+      resizeSizeInput.classList.remove("input-error");
+      resizeSizeX.classList.add ("input-error");
+      resizeSizeY.classList.add ("input-error");
+
+    } else {
+      btnSubmitResize.setAttribute('disabled', 'true');
+
+      if (resizeSize >= currentResizer._image.naturalWidth - resizeX) {
+        resizeSizeInput.classList.add ("input-error");
+        resizeSizeX.classList.add ("input-error");
+      }
+
+      if (resizeSize >= currentResizer._image.naturalHeight - resizeY) {
+        resizeSizeInput.classList.add ("input-error");
+        resizeSizeY.classList.add ("input-error");
+      }
     }
   };
 
