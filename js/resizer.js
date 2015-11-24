@@ -81,14 +81,13 @@
     redraw: function() {
       // Очистка изображения.
       this._ctx.clearRect(0, 0, this._container.width, this._container.height);
-
       // Параметры линии.
       // NB! Такие параметры сохраняются на время всего процесса отрисовки
       // canvas'a поэтому важно вовремя поменять их, если нужно начать отрисовку
       // чего-либо с другой обводкой.
 
       // Толщина линии.
-      this._ctx.lineWidth = 6;
+      this._ctx.lineWidth = 2;
       // Цвет обводки.
       this._ctx.strokeStyle = '#ffe753';
       // Размер штрихов. Первый элемент массива задает длину штриха, второй
@@ -111,14 +110,132 @@
       // Координаты задаются от центра холста.
       this._ctx.drawImage(this._image, displX, displY);
 
+      //// Накладываем на фотографию полупрозрачный слой (нужен для отображения отсекаемой области)
+      //this._ctx.fillStyle = "rgba(0, 0, 200, 0.5)";
+      //this._ctx.fillRect(displX,displY,this._image.naturalWidth,this._image.naturalHeight);
+      //
+      //// устанавливаем композицию
+      //this._ctx.globalCompositeOperation = 'xor';
+      //
+      //// Исключаем область из полупрозрачного слоя (область, которая будет загружена)
+      //this._ctx.fillStyle = "rgba(0, 0, 200, 1)";
+      //this._ctx.fillRect(
+      //    (-this._resizeConstraint.side / 2) - this._ctx.lineWidth,
+      //    (-this._resizeConstraint.side / 2) - this._ctx.lineWidth,
+      //    this._resizeConstraint.side + this._ctx.lineWidth/2,
+      //    this._resizeConstraint.side + this._ctx.lineWidth/2);
+
+      // Способ 2
+      // Полупрозрачная область, закрывающая часть фото
+      // Все размеры указаны относительно осей X и Y,
+      // где X1 - минимальное значение X на холсте,
+      // а X2 - максимальное значение соответственно
+      var fillX1 = -(this._image.naturalWidth / 2);
+      var fillY1 = -(this._image.naturalHeight / 2);
+      var fillX2 = (this._image.naturalWidth / 2);
+      var fillY2 = (this._image.naturalHeight / 2);
+
+      this._ctx.moveTo(fillX1, fillY1);
+      this._ctx.lineTo(fillX2, fillY1);
+      this._ctx.lineTo(fillX2, fillY2);
+      this._ctx.lineTo(fillX1, fillY2);
+      this._ctx.lineTo(fillX1, fillY1);
+      this._ctx.closePath();
+
+      // Рамка, по которую будет обрезано фото
+      var cropX1 = -(this._resizeConstraint.side / 2) - this._ctx.lineWidth;
+      var cropY1 = -(this._resizeConstraint.side / 2) - this._ctx.lineWidth;
+      var cropX2 = this._resizeConstraint.side / 2 - this._ctx.lineWidth/2;
+      var cropY2 = this._resizeConstraint.side /2 - this._ctx.lineWidth/2;
+
+      this._ctx.moveTo(cropX1, cropY1);
+      this._ctx.lineTo(cropX1, cropY2);
+      this._ctx.lineTo(cropX2, cropY2);
+      this._ctx.lineTo(cropX2, cropY1);
+      this._ctx.lineTo(cropX1, cropY1);
+      this._ctx.closePath();
+
+      this._ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+      this._ctx.fill();
+
       // Отрисовка прямоугольника, обозначающего область изображения после
       // кадрирования. Координаты задаются от центра.
-      this._ctx.strokeRect(
-          (-this._resizeConstraint.side / 2) - this._ctx.lineWidth / 2,
-          (-this._resizeConstraint.side / 2) - this._ctx.lineWidth / 2,
-          this._resizeConstraint.side - this._ctx.lineWidth / 2,
-          this._resizeConstraint.side - this._ctx.lineWidth / 2);
+      // Способ отрисовки - пунктир
+      //this._ctx.strokeRect(
+      //    (-this._resizeConstraint.side / 2) - this._ctx.lineWidth / 2,
+      //    (-this._resizeConstraint.side / 2) - this._ctx.lineWidth / 2,
+      //    this._resizeConstraint.side - this._ctx.lineWidth / 2,
+      //    this._resizeConstraint.side - this._ctx.lineWidth / 2);
 
+      // Отрисовка прямоугольника отсекаемой области зиг-загом
+      //шаг для зигзага
+      var step= 0;
+      var b = 10;
+
+      // Начало координат для линии вправо (Линия1)
+      var xLineRight = cropX1 + b/2;
+      var yLineRight = cropY1 + b/2;
+      // Параллельная линия (Линия2)
+      var yLineRight2 = cropY2 + b/2;
+
+      // Начало координат для линии вниз (Линия3)
+      var xLineDown = cropX1 + b/2;
+      var yLineDown = cropY1 + b/2;
+      // Параллельная линия (Линия4)
+      var xLineDown2 = cropX2 + b/2;
+
+      var countStep = this._resizeConstraint.side / (b/1.5);
+
+      for (var i = 0; i < countStep; i++) {
+        //если четное
+        if(i%2 == 0){
+          step = -b;
+        }
+        //если нечетное
+        else{
+          step = b;
+        }
+        this._ctx.beginPath();
+        //рисуем линию1
+        this._ctx.moveTo(xLineRight, yLineRight);
+        this._ctx.lineTo(xLineRight + b, yLineRight + step);
+        this._ctx.closePath();
+        this._ctx.stroke();
+
+        //рисуем линию2
+        this._ctx.moveTo(xLineRight, yLineRight2);
+        this._ctx.lineTo(xLineRight + b,yLineRight2 + step);
+        this._ctx.closePath();
+        this._ctx.stroke();
+
+        //рисуем линию3
+        this._ctx.moveTo(xLineDown, yLineDown);
+        this._ctx.lineTo(xLineDown + step, yLineDown + b);
+        this._ctx.closePath();
+        this._ctx.stroke();
+
+        //рисуем линию4
+        this._ctx.moveTo(xLineDown2, yLineDown);
+        this._ctx.lineTo(xLineDown2 + step, yLineDown + b);
+        this._ctx.closePath();
+        this._ctx.stroke();
+
+        //увеличиваем шаг для Линии1 и Линии2
+        xLineRight = xLineRight + b/1.5;
+        yLineRight = yLineRight + step/1.5;
+        yLineRight2 = yLineRight2 + step/1.5;
+
+        //увеличиваем шаг для Линии3 и Линии4
+        xLineDown = xLineDown + step/1.5;
+        yLineDown = yLineDown + b/1.5;
+        xLineDown2 = xLineDown2 + step/1.5;
+      }
+
+      // Текст над обрезаемой областью, который информирует о размере изображения
+      this._ctx.fillStyle = "white";
+      this._ctx.textAlign = "center";
+      this._ctx.font = '14px Arial';
+      this._ctx.fillText(this._image.naturalWidth + ' x ' + this._image.naturalHeight,0,(-this._resizeConstraint.side / 2) - 10 );
       // Восстановление состояния канваса, которое было до вызова ctx.save
       // и последующего изменения системы координат. Нужно для того, чтобы
       // следующий кадр рисовался с привычной системой координат, где точка
