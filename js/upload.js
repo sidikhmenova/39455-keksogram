@@ -35,6 +35,9 @@
    */
   var filterMap;
 
+  //
+  var CookiesFilter = docCookies.getItem('filterImagePreview') || '';
+
   /**
    * Объект, который занимается кадрированием изображения.
    * @type {Resizer}
@@ -93,7 +96,6 @@
     var resizeSize = resizeForm['resize-size'].value;
 
     //минимальные значения для полей
-    //resizeX.min = -(currentResizer._image.naturalWidth/2);
     return (+resizeX > 0 && +resizeY > 0 && +resizeSize > 0) &&
         (+resizeX + +resizeSize <= currentResizer._image.naturalWidth) &&
         (+resizeY + +resizeSize <= currentResizer._image.naturalHeight);
@@ -201,7 +203,6 @@
       }
     }
   };
-
   /**
    * Обработка сброса формы кадрирования. Возвращает в начальное состояние
    * и обновляет фон.
@@ -230,9 +231,11 @@
 
       resizeForm.classList.add('invisible');
       filterForm.classList.remove('invisible');
-    }
-    else {
-      // Показ сообщения об ошибке, если не валидны значения для кадрирования изображения
+
+      filterImage.classList.add(CookiesFilter);
+
+    } else {
+    // Показ сообщения об ошибке, если не валидны значения для кадрирования изображения
       showMessage(Action.resizeForm);
     }
   };
@@ -254,24 +257,68 @@
 
     if (resizeFormIsValid()) {
       btnSubmitResize.removeAttribute('disabled');
-      resizeSizeInput.classList.remove("input-error");
-      resizeSizeX.classList.add ("input-error");
-      resizeSizeY.classList.add ("input-error");
+      resizeSizeInput.classList.remove('input-error');
+      resizeSizeX.classList.add('input-error');
+      resizeSizeY.classList.add('input-error');
 
     } else {
       btnSubmitResize.setAttribute('disabled', 'true');
 
       if (resizeSize >= currentResizer._image.naturalWidth - resizeX) {
-        resizeSizeInput.classList.add ("input-error");
-        resizeSizeX.classList.add ("input-error");
+        resizeSizeInput.classList.add('input-error');
+        resizeSizeX.classList.add('input-error');
       }
 
       if (resizeSize >= currentResizer._image.naturalHeight - resizeY) {
-        resizeSizeInput.classList.add ("input-error");
-        resizeSizeY.classList.add ("input-error");
+        resizeSizeInput.classList.add('input-error');
+        resizeSizeY.classList.add('input-error');
       }
     }
   };
+
+  /*Работаем с фильтром*/
+
+  // Вычисояем кол-во дней для хранения Куки
+  // Вычесляется как:
+  // 1) Определяем кол-во дней, прошедших с последнего дня рождения
+  // 2) Прибавляем к текущей дате
+  function getDateExpire() {
+    var today = new Date();
+    //console.log(today);
+    //var myBithday = new Date(today.getFullYear() + ' september 22');
+    var dateBD = new Date(2015, 4, 8);
+    var dateExp = +today - +dateBD;
+    //console.log(dateExp);
+    var dateToExpire = +Date.now() + +dateExp;
+
+    //console.log(dateToExpire);
+    //console.log(new Date(dateToExpire).toUTCString());
+    return new Date(dateToExpire).toUTCString();
+  }
+
+
+  // Функция определения выбранного фильтра.
+  // Нужно для:
+  // 1. для дальнейшего приобразования
+  // 2. Для записи в cookies
+  function setFilter() {
+    if (!filterMap) {
+      // Ленивая инициализация. Объект не создается до тех пор, пока
+      // не понадобится прочитать его в первый раз, а после этого запоминается
+      // навсегда.
+      filterMap = {
+        'none': 'filter-none',
+        'chrome': 'filter-chrome',
+        'sepia': 'filter-sepia'
+      };
+    }
+
+    var selectedFilter = [].filter.call(filterForm['upload-filter'], function(item) {
+      return item.checked;
+    })[0].value;
+
+    return filterMap[selectedFilter];
+  }
 
   /**
    * Сброс формы фильтра. Показывает форму кадрирования.
@@ -294,6 +341,7 @@
 
     cleanupResizer();
     updateBackground();
+    docCookies.setItem('filterImagePreview', setFilter(), getDateExpire());
 
     filterForm.classList.add('invisible');
     uploadForm.classList.remove('invisible');
@@ -304,25 +352,10 @@
    * выбранному значению в форме.
    */
   filterForm.onchange = function() {
-    if (!filterMap) {
-      // Ленивая инициализация. Объект не создается до тех пор, пока
-      // не понадобится прочитать его в первый раз, а после этого запоминается
-      // навсегда.
-      filterMap = {
-        'none': 'filter-none',
-        'chrome': 'filter-chrome',
-        'sepia': 'filter-sepia'
-      };
-    }
-
-    var selectedFilter = [].filter.call(filterForm['upload-filter'], function(item) {
-      return item.checked;
-    })[0].value;
-
     // Класс перезаписывается, а не обновляется через classList потому что нужно
     // убрать предыдущий примененный класс. Для этого нужно или запоминать его
     // состояние или просто перезаписывать.
-    filterImage.className = 'filter-image-preview ' + filterMap[selectedFilter];
+    filterImage.className = 'filter-image-preview ' + setFilter();
   };
 
   cleanupResizer();
