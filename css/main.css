@@ -218,6 +218,12 @@ body {
   width: 3em;
 }
 
+
+.input-error {
+  background-color: #fc7474;
+}
+
+
 .upload-filter-controls {
   border: 0;
   bottom: 10px;

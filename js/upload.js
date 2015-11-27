@@ -35,6 +35,9 @@
    */
   var filterMap;
 
+  //
+  var CookiesFilter = docCookies.getItem('filterImagePreview') || '';
+
   /**
    * Объект, который занимается кадрированием изображения.
    * @type {Resizer}
@@ -68,11 +71,34 @@
   }
 
   /**
+   * Заполнение значениями по-умолчанию.
+   * Значения берутся из параметров картинки и вычисляемого значения side,
+   * вычисляемого в файле resizer.js
+   */
+  function setDefaultValues() {
+    if (currentResizer) {
+      resizeForm['resize-x'].value = currentResizer._resizeConstraint.x;
+      resizeForm['resize-y'].value = currentResizer._resizeConstraint.y;
+      resizeForm['resize-size'].value = currentResizer._resizeConstraint.side;
+    }
+  }
+
+  /**
    * Проверяет, валидны ли данные, в форме кадрирования.
    * @return {boolean}
    */
   function resizeFormIsValid() {
-    return true;
+    //return true;
+
+    //значения полей ввода. Т.е. считаваем заполненные поля ввода
+    var resizeX = resizeForm['resize-x'].value;
+    var resizeY = resizeForm['resize-y'].value;
+    var resizeSize = resizeForm['resize-size'].value;
+
+    //минимальные значения для полей
+    return (+resizeX > 0 && +resizeY > 0 && +resizeSize > 0) &&
+        (+resizeX + +resizeSize <= currentResizer._image.naturalWidth) &&
+        (+resizeY + +resizeSize <= currentResizer._image.naturalHeight);
   }
 
   /**
@@ -120,6 +146,11 @@
         isError = true;
         message = message || 'Неподдерживаемый формат файла<br> <a href="' + document.location + '">Попробовать еще раз</a>.';
         break;
+
+      case Action.resizeForm:
+        isError = true;
+        message = message || 'Данные для кадрирования не корректны<br> <a href="' + document.location + '">Попробовать еще раз</a>.';
+        break;
     }
 
     uploadMessage.querySelector('.upload-message-container').innerHTML = message;
@@ -160,6 +191,8 @@
           resizeForm.classList.remove('invisible');
 
           hideMessage();
+          // Объект currentResizer заполняется не сразу, поэтому использован небольшой таймаут
+          setTimeout(setDefaultValues, 20);
         };
 
         fileReader.readAsDataURL(element.files[0]);
@@ -170,7 +203,6 @@
       }
     }
   };
-
   /**
    * Обработка сброса формы кадрирования. Возвращает в начальное состояние
    * и обновляет фон.
@@ -199,8 +231,94 @@
 
       resizeForm.classList.add('invisible');
       filterForm.classList.remove('invisible');
+
+      filterImage.classList.add(CookiesFilter);
+
+    } else {
+    // Показ сообщения об ошибке, если не валидны значения для кадрирования изображения
+      showMessage(Action.resizeForm);
     }
   };
+
+  /**
+   * Блокировка кнопки кадрирования, если введены не валидные данные
+   */
+
+  var btnSubmitResize = resizeForm.querySelector('[type="submit"]');
+
+  resizeForm.onchange = function() {
+    var resizeSize = resizeForm['resize-size'].value;
+    var resizeX = resizeForm['resize-x'].value;
+    var resizeY = resizeForm['resize-x'].value;
+
+    var resizeSizeX = document.getElementById('resize-x');
+    var resizeSizeY = document.getElementById('resize-y');
+    var resizeSizeInput = document.getElementById('resize-size');
+
+    if (resizeFormIsValid()) {
+      btnSubmitResize.removeAttribute('disabled');
+      resizeSizeInput.classList.remove('input-error');
+      resizeSizeX.classList.add('input-error');
+      resizeSizeY.classList.add('input-error');
+
+    } else {
+      btnSubmitResize.setAttribute('disabled', 'true');
+
+      if (resizeSize >= currentResizer._image.naturalWidth - resizeX) {
+        resizeSizeInput.classList.add('input-error');
+        resizeSizeX.classList.add('input-error');
+      }
+
+      if (resizeSize >= currentResizer._image.naturalHeight - resizeY) {
+        resizeSizeInput.classList.add('input-error');
+        resizeSizeY.classList.add('input-error');
+      }
+    }
+  };
+
+  /*Работаем с фильтром*/
+
+  // Вычисояем кол-во дней для хранения Куки
+  // Вычесляется как:
+  // 1) Определяем кол-во дней, прошедших с последнего дня рождения
+  // 2) Прибавляем к текущей дате
+  function getDateExpire() {
+    var today = new Date();
+    //console.log(today);
+    //var myBithday = new Date(today.getFullYear() + ' september 22');
+    var dateBD = new Date(2015, 4, 8);
+    var dateExp = +today - +dateBD;
+    //console.log(dateExp);
+    var dateToExpire = +Date.now() + +dateExp;
+
+    //console.log(dateToExpire);
+    //console.log(new Date(dateToExpire).toUTCString());
+    return new Date(dateToExpire).toUTCString();
+  }
+
+
+  // Функция определения выбранного фильтра.
+  // Нужно для:
+  // 1. для дальнейшего приобразования
+  // 2. Для записи в cookies
+  function setFilter() {
+    if (!filterMap) {
+      // Ленивая инициализация. Объект не создается до тех пор, пока
+      // не понадобится прочитать его в первый раз, а после этого запоминается
+      // навсегда.
+      filterMap = {
+        'none': 'filter-none',
+        'chrome': 'filter-chrome',
+        'sepia': 'filter-sepia'
+      };
+    }
+
+    var selectedFilter = [].filter.call(filterForm['upload-filter'], function(item) {
+      return item.checked;
+    })[0].value;
+
+    return filterMap[selectedFilter];
+  }
 
   /**
    * Сброс формы фильтра. Показывает форму кадрирования.
@@ -223,6 +341,7 @@
 
     cleanupResizer();
     updateBackground();
+    docCookies.setItem('filterImagePreview', setFilter(), getDateExpire());
 
     filterForm.classList.add('invisible');
     uploadForm.classList.remove('invisible');
@@ -233,25 +352,10 @@
    * выбранному значению в форме.
    */
   filterForm.onchange = function() {
-    if (!filterMap) {
-      // Ленивая инициализация. Объект не создается до тех пор, пока
-      // не понадобится прочитать его в первый раз, а после этого запоминается
-      // навсегда.
-      filterMap = {
-        'none': 'filter-none',
-        'chrome': 'filter-chrome',
-        'sepia': 'filter-sepia'
-      };
-    }
-
-    var selectedFilter = [].filter.call(filterForm['upload-filter'], function(item) {
-      return item.checked;
-    })[0].value;
-
     // Класс перезаписывается, а не обновляется через classList потому что нужно
     // убрать предыдущий примененный класс. Для этого нужно или запоминать его
     // состояние или просто перезаписывать.
-    filterImage.className = 'filter-image-preview ' + filterMap[selectedFilter];
+    filterImage.className = 'filter-image-preview ' + setFilter();
   };
 
   cleanupResizer();
