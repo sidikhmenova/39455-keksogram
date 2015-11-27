@@ -55,7 +55,6 @@
 
     backgroundImage.onload = function() {
       clearTimeout(imageLoadTimeout);
-      //element.style.backgroundImage = 'url(\'' + backgroundImage.src + '\')';
     };
 
     // Если изображение не загрузилось (404 ошибка, ошибка сервера),
