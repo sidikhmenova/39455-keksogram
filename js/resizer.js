@@ -145,8 +145,8 @@
       // Рамка, по которую будет обрезано фото
       var cropX1 = -(this._resizeConstraint.side / 2) - this._ctx.lineWidth;
       var cropY1 = -(this._resizeConstraint.side / 2) - this._ctx.lineWidth;
-      var cropX2 = this._resizeConstraint.side / 2 - this._ctx.lineWidth/2;
-      var cropY2 = this._resizeConstraint.side /2 - this._ctx.lineWidth/2;
+      var cropX2 = this._resizeConstraint.side / 2 - this._ctx.lineWidth / 2;
+      var cropY2 = this._resizeConstraint.side / 2 - this._ctx.lineWidth / 2;
 
       this._ctx.moveTo(cropX1, cropY1);
       this._ctx.lineTo(cropX1, cropY2);
@@ -155,7 +155,7 @@
       this._ctx.lineTo(cropX1, cropY1);
       this._ctx.closePath();
 
-      this._ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+      this._ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
       this._ctx.fill();
 
       // Отрисовка прямоугольника, обозначающего область изображения после
@@ -169,30 +169,28 @@
 
       // Отрисовка прямоугольника отсекаемой области зиг-загом
       //шаг для зигзага
-      var step= 0;
+      var step = 0;
       var b = 10;
 
       // Начало координат для линии вправо (Линия1)
-      var xLineRight = cropX1 + b/2;
-      var yLineRight = cropY1 + b/2;
+      var xLineRight = cropX1 + b / 2;
+      var yLineRight = cropY1 + b / 2;
       // Параллельная линия (Линия2)
-      var yLineRight2 = cropY2 + b/2;
+      var yLineRight2 = cropY2 + b / 2;
 
       // Начало координат для линии вниз (Линия3)
-      var xLineDown = cropX1 + b/2;
-      var yLineDown = cropY1 + b/2;
+      var xLineDown = cropX1 + b / 2;
+      var yLineDown = cropY1 + b / 2;
       // Параллельная линия (Линия4)
-      var xLineDown2 = cropX2 + b/2;
+      var xLineDown2 = cropX2 + b / 2;
 
-      var countStep = this._resizeConstraint.side / (b/1.5);
+      var countStep = this._resizeConstraint.side / (b / 1.5);
 
       for (var i = 0; i < countStep; i++) {
         //если четное
-        if(i%2 == 0){
+        if (i % 2 === 0 ) {
           step = -b;
-        }
-        //если нечетное
-        else{
+        } else {
           step = b;
         }
         this._ctx.beginPath();
@@ -204,7 +202,7 @@
 
         //рисуем линию2
         this._ctx.moveTo(xLineRight, yLineRight2);
-        this._ctx.lineTo(xLineRight + b,yLineRight2 + step);
+        this._ctx.lineTo(xLineRight + b, yLineRight2 + step);
         this._ctx.closePath();
         this._ctx.stroke();
 
@@ -221,21 +219,21 @@
         this._ctx.stroke();
 
         //увеличиваем шаг для Линии1 и Линии2
-        xLineRight = xLineRight + b/1.5;
-        yLineRight = yLineRight + step/1.5;
-        yLineRight2 = yLineRight2 + step/1.5;
+        xLineRight = xLineRight + b / 1.5;
+        yLineRight = yLineRight + step / 1.5;
+        yLineRight2 = yLineRight2 + step / 1.5;
 
         //увеличиваем шаг для Линии3 и Линии4
-        xLineDown = xLineDown + step/1.5;
-        yLineDown = yLineDown + b/1.5;
-        xLineDown2 = xLineDown2 + step/1.5;
+        xLineDown = xLineDown + step / 1.5;
+        yLineDown = yLineDown + b / 1.5;
+        xLineDown2 = xLineDown2 + step / 1.5;
       }
 
       // Текст над обрезаемой областью, который информирует о размере изображения
-      this._ctx.fillStyle = "white";
-      this._ctx.textAlign = "center";
+      this._ctx.fillStyle = 'white';
+      this._ctx.textAlign = 'center';
       this._ctx.font = '14px Arial';
-      this._ctx.fillText(this._image.naturalWidth + ' x ' + this._image.naturalHeight,0,(-this._resizeConstraint.side / 2) - 10 );
+      this._ctx.fillText(this._image.naturalWidth + ' x ' + this._image.naturalHeight, 0, (-this._resizeConstraint.side / 2) - 10 );
       // Восстановление состояния канваса, которое было до вызова ctx.save
       // и последующего изменения системы координат. Нужно для того, чтобы
       // следующий кадр рисовался с привычной системой координат, где точка

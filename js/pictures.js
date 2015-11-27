@@ -4,6 +4,8 @@
 
 'use strict';
 
+/* global pictures: true */
+
 (function() {
   var container = document.querySelector('.pictures');
 
@@ -46,13 +48,13 @@
       //image.width = 182;
       //image.height = 182;
       //element.replaceChild(image, element.querySelector('img'));
-    }
+    };
 
     // Если изображение не загрузилось (404 ошибка, ошибка сервера),
     // показываем сообщение, что у отеля нет фотографий.
     backgroundImage.onerror = function() {
       element.classList.add('picture-load-failure');
-    }
+    };
 
     /*
     *@const
