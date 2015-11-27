@@ -284,15 +284,10 @@
   // 2) Прибавляем к текущей дате
   function getDateExpire() {
     var today = new Date();
-    //console.log(today);
-    //var myBithday = new Date(today.getFullYear() + ' september 22');
     var dateBD = new Date(2015, 4, 8);
     var dateExp = +today - +dateBD;
-    //console.log(dateExp);
-    var dateToExpire = +Date.now() + +dateExp;
 
-    //console.log(dateToExpire);
-    //console.log(new Date(dateToExpire).toUTCString());
+    var dateToExpire = +Date.now() + +dateExp;
     return new Date(dateToExpire).toUTCString();
   }
 
