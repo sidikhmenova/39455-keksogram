@@ -4,24 +4,45 @@
 
 'use strict';
 
-/* global pictures: true */
-
 (function() {
   var template = document.querySelector('#picture-template');
   var container = document.querySelector('.pictures');
   var filter = document.querySelector('.filters');
 
-// 1. Перебираем все элементы в структуре данных
-  pictures.forEach(function(pictures) {
-    var element = getElementFromTemplate(pictures);
-    container.appendChild(element);
-  });
+  getImages();
+  /*
+   * Отрисовка изображений
+   * @param {Array.<object>} pictures
+   * */
+  function renderImage(images) {
+    images.forEach(function(image) {
+      var element = getElementFromTemplate(image);
+      container.appendChild(element);
+    });
+  }
 
-// 2.Для каждого элемента создаем DOM - элемент на основе шаблона
-    /*
-     * @param {object} data
-     * @return {element}
-     * */
+  //Получение списка изображений
+  function getImages() {
+    // создаем новый xhr запрос
+    var xhr = new XMLHttpRequest();
+    // указываем, что грузим его с сервера с помощью метода GET
+    xhr.open('GET', 'data/pictures.json');
+    // ставим обработчик
+    xhr.onload = function(evt) {
+      // берем данные и парсим их
+      var rowData = evt.target.response;
+      var loadedImages = JSON.parse(rowData);
+
+      //Обработка загружаемых данных
+      renderImage(loadedImages);
+    };
+    xhr.send();
+  }
+  /*
+    * Для каждого элемента создаем DOM - элемент на основе шаблона
+    * @param {object} data
+    * @return {element}
+  * */
   function getElementFromTemplate(data) {
     var element;
     var IMAGE_TIMEOUT = 10000;
