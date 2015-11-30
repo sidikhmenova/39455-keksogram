@@ -65,9 +65,12 @@
           // фильтруем массив с датами и отбираем изображения за 3 месяца
         filteredImages = filteredImages.filter(function(date) {
           // делаем выборку за последние 3 месяца
-          var MonthAgo = Date.now() - 3 * 4 * 7 * 24 * 60 * 60 * 1000;
           var pictureDate = new Date(date.date);
-          return +pictureDate > MonthAgo;
+          var lastDate = new Date();
+          var lastMonth = lastDate.getMonth();
+          lastMonth = lastMonth - 3;
+          lastDate.setMonth(lastMonth);
+          return pictureDate > lastDate;
         });
         break;
       case 'filter-discussed':
