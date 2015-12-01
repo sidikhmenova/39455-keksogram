@@ -62,16 +62,8 @@
         filteredImages = filteredImages.sort(function(a, b) {
           return b.date - a.date;
         });
-          // фильтруем массив с датами и отбираем изображения за 3 месяца
-        filteredImages = filteredImages.filter(function(date) {
-          // делаем выборку за последние 3 месяца
-          var pictureDate = new Date(date.date);
-          var lastDate = new Date();
-          var lastMonth = lastDate.getMonth();
-          lastMonth = lastMonth - 3;
-          lastDate.setMonth(lastMonth);
-          return pictureDate > lastDate;
-        });
+        // фильтруем массив с датами и отбираем изображения за 3 месяца
+        filteredImages = filteredImages.filter(selectedDay);
         break;
       case 'filter-discussed':
         // Для показа популярных оизображений - сортируем по порядку убывания популярности
@@ -84,6 +76,16 @@
     renderImage(filteredImages);
   }
 
+  // Функция анализа даты публикации
+  function selectedDay(date) {
+    // делаем выборку за последние 3 месяца
+    var pictureDate = new Date(date.date);
+    var lastDate = new Date();
+    var lastMonth = lastDate.getMonth();
+    lastMonth = lastMonth - 3;
+    lastDate.setMonth(lastMonth);
+    return pictureDate > lastDate;
+  }
 
   //Загрузка списка изображений
   function getImages() {
