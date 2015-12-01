@@ -19,6 +19,11 @@
     };
   }
 
+  var lastDate = new Date();
+  var lastMonth = lastDate.getMonth();
+  lastMonth = lastMonth - 3;
+  lastDate.setMonth(lastMonth);
+
   container.classList.add('pictures-loading');
 
   getImages();
@@ -80,10 +85,6 @@
   function selectedDay(date) {
     // делаем выборку за последние 3 месяца
     var pictureDate = new Date(date.date);
-    var lastDate = new Date();
-    var lastMonth = lastDate.getMonth();
-    lastMonth = lastMonth - 3;
-    lastDate.setMonth(lastMonth);
     return pictureDate > lastDate;
   }
 
