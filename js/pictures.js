@@ -32,13 +32,14 @@
 
   function getPageNumbers() {
     // определяем положение футера относительно экрана
-    var footerCoordinates = document.querySelector('footer').getBoundingClientRect();
+    var footerCoordinates = container.getBoundingClientRect();
 
     // определяем высоту экрана (вьюпорта)
     var viewportSize = window.innerHeight;
 
     // Анализируем положение футера относительно экрана (вьюпорта)
-    if (footerCoordinates.bottom - viewportSize <= footerCoordinates.height) {
+    //if (footerCoordinates.bottom - viewportSize <= footerCoordinates.height) {
+    if (footerCoordinates.bottom <= viewportSize) {
       if (currentPage < Math.ceil(filteredImages.length / PAGE_SIZE)) {
         renderImage(filteredImages, ++currentPage);
       }
