@@ -10,13 +10,39 @@
   var filter = document.querySelector('.filters');
   var activeFilter = 'filter-all';// ID фильтра по-умолчанию
   var images = [];
+  var filteredImages = [];
+  var currentPage = 0;
+  var PAGE_SIZE = 11;
 
-  var filters = document.querySelectorAll('.filters-radio');//Берем весь блок с фильтрами
-  for (var i = 0; i < filters.length; i++) {
-    filters[i].onclick = function(evt) {
-      var currentID = evt.target.id;
-      setActiveFilter(currentID);
-    };
+  var filters = document.querySelector('.filters');//Берем весь блок с фильтрами
+  filters.addEventListener('click', function(evt) {
+    // определяем на каком событии произошло "всплытие"
+    var clickedElement = evt.target;
+    if (clickedElement.classList.contains('filters-radio')) {
+      setActiveFilter(clickedElement.id);
+    }
+  });
+
+  var scrollTimeout;
+
+  window.addEventListener('scroll', function() {
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(getPageNumbers, 100);
+  });
+
+  function getPageNumbers() {
+    // определяем положение футера относительно экрана
+    var footerCoordinates = document.querySelector('footer').getBoundingClientRect();
+
+    // определяем высоту экрана (вьюпорта)
+    var viewportSize = window.innerHeight;
+
+    // Анализируем положение футера относительно экрана (вьюпорта)
+    if (footerCoordinates.bottom - viewportSize <= footerCoordinates.height) {
+      if (currentPage < Math.ceil(filteredImages.length / PAGE_SIZE)) {
+        renderImage(filteredImages, ++currentPage);
+      }
+    }
   }
 
   container.classList.add('pictures-loading');
@@ -26,13 +52,22 @@
    * Отрисовка изображений
    * @param {Array.<object>} pictures
    * */
-  function renderImage(ArrayImages) {
-    // чистим список изображений до загрузки.
-    container.innerHTML = '';
+  function renderImage(ArrayImages, pageNumber, replace) {
+    // чистим список изображений до загрузки, если нужно (зависит от значения replace - булево).
+    if (replace) {
+      container.innerHTML = '';
+    }
     // создаем фрагмент документа для последующей загрузки (контейнер для других нод)
     var fragment = document.createDocumentFragment();
 
-    ArrayImages.forEach(function(image) {
+    // с какого элемента будем вырезать
+    var from = pageNumber * PAGE_SIZE;
+    // по какой элемент будем вырезать
+    var to = from + PAGE_SIZE;
+    // вырезаем отели со страницы
+    var pageImage = ArrayImages.slice(from, to);
+
+    pageImage.forEach(function(image) {
       var element = getElementFromTemplate(image);
       fragment.appendChild(element);
     });
@@ -40,19 +75,21 @@
     // загружаем все изображения разово
     container.appendChild(fragment);
   }
+
   /*
    * Установка выбранного фильтра
    * @param {string} id
    * */
-  function setActiveFilter(id) {
+  function setActiveFilter(id, force) {
     // Защита от повторного выбора текущего фильтра
-    if (activeFilter === id) {
+    if (activeFilter === id && !force) {
       return;
     }
 
     // Алгоритм фильтрации
     // выполняем сортировку/фильтрацию списка и вывод на страницу
-    var filteredImages = images.slice(0);
+    currentPage = 0;
+    filteredImages = images.slice(0);
 
     // перебираем варианты фильтров
     switch (id) {
@@ -60,7 +97,9 @@
         // Для показа новых изображений - сортируем по порядку
         // список фотографий, сделанных за последние три месяца, отсортированные по убыванию даты
         filteredImages = filteredImages.sort(function(a, b) {
-          return b.date - a.date;
+          var dateA = new Date(a.date);
+          var dateB = new Date(b.date);
+          return dateB - dateA;
         });
         // фильтруем массив с датами и отбираем изображения за 3 месяца
         filteredImages = filteredImages.filter(selectedDay);
@@ -73,7 +112,8 @@
         break;
     }
 
-    renderImage(filteredImages);
+    renderImage(filteredImages, 0, true);
+    getPageNumbers();
   }
 
   var lastDate = new Date();
@@ -103,7 +143,7 @@
       images = loadedImages;
 
       //Обработка загружаемых данных
-      renderImage(loadedImages);
+      setActiveFilter(activeFilter, true);
     };
 
     // обработчик возникших ошибок (сервера)
