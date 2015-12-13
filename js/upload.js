@@ -170,7 +170,7 @@
    * и показывается форма кадрирования.
    * @param {Event} evt
    */
-  uploadForm.addEventListener('change', function(evt){
+  uploadForm.addEventListener('change', function(evt) {
   //uploadForm.onchange = function(evt) {
     var element = evt.target;
     if (element.id === 'upload-file') {
@@ -253,44 +253,35 @@
   var resizeX = resizeForm['resize-x'].value;
   var resizeY = resizeForm['resize-x'].value;
 
-  var evt = document.createEvent('CustomEvent');
-  evt.initCustomEvent('resizerchange', false, false, {});
+  //var evt = document.createEvent('CustomEvent');
 
-  window.addEventListener('resizerchange', getResizerConstraints);
-
-  function getResizerConstraints() {
-    var resizeCh = currentResizer.getConstraint();
-
-    resizeX.value = resizeCh.x;
-    resizeY.value = resizeCh.y;
-    resizeSize.value = resizeCh.side;
-  }
 
   resizeForm.addEventListener('change', function() {
   //resizeForm.onchange = function() {
 
-    var resizeSizeX = document.getElementById('resize-x');
-    var resizeSizeY = document.getElementById('resize-y');
-    var resizeSizeInput = document.getElementById('resize-size');
+    //var resizeSizeX = document.getElementById('resize-x');
+    //var resizeSizeY = document.getElementById('resize-y');
+    //var resizeSizeInput = document.getElementById('resize-size');
+    currentResizer.setConstraint(+resizeX.value, +resizeY.value, +resizeSize.value);
 
     if (resizeFormIsValid()) {
       btnSubmitResize.removeAttribute('disabled');
-      resizeSizeInput.classList.remove('input-error');
-      resizeSizeX.classList.add('input-error');
-      resizeSizeY.classList.add('input-error');
+      //resizeSizeInput.classList.remove('input-error');
+      //resizeSizeX.classList.add('input-error');
+      //resizeSizeY.classList.add('input-error');
 
     } else {
       btnSubmitResize.setAttribute('disabled', 'true');
 
-      if (resizeSize >= currentResizer._image.naturalWidth - resizeX) {
-        resizeSizeInput.classList.add('input-error');
-        resizeSizeX.classList.add('input-error');
-      }
-
-      if (resizeSize >= currentResizer._image.naturalHeight - resizeY) {
-        resizeSizeInput.classList.add('input-error');
-        resizeSizeY.classList.add('input-error');
-      }
+      //if (resizeSize >= currentResizer._image.naturalWidth - resizeX) {
+      //  resizeSizeInput.classList.add('input-error');
+      //  resizeSizeX.classList.add('input-error');
+      //}
+      //
+      //if (resizeSize >= currentResizer._image.naturalHeight - resizeY) {
+      //  resizeSizeInput.classList.add('input-error');
+      //  resizeSizeY.classList.add('input-error');
+      //}
     }
   });
 
@@ -372,6 +363,13 @@
     // убрать предыдущий примененный класс. Для этого нужно или запоминать его
     // состояние или просто перезаписывать.
     filterImage.className = 'filter-image-preview ' + setFilter();
+  });
+
+  window.addEventListener('resizerchange', function() {
+    var currentConstraint = currentResizer.getConstraint();
+
+    resizeSize.value = currentConstraint.side.toString();
+
   });
 
   cleanupResizer();
