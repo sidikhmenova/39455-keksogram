@@ -249,9 +249,9 @@
 
   var btnSubmitResize = resizeForm.querySelector('[type="submit"]');
 
-  var resizeSize = resizeForm['resize-size'].value;
-  var resizeX = resizeForm['resize-x'].value;
-  var resizeY = resizeForm['resize-x'].value;
+  var resizeSize = resizeForm['resize-size'];
+  var resizeX = resizeForm['resize-x'];
+  var resizeY = resizeForm['resize-x'];
 
   //var evt = document.createEvent('CustomEvent');
 
@@ -262,7 +262,9 @@
     //var resizeSizeX = document.getElementById('resize-x');
     //var resizeSizeY = document.getElementById('resize-y');
     //var resizeSizeInput = document.getElementById('resize-size');
+
     currentResizer.setConstraint(+resizeX.value, +resizeY.value, +resizeSize.value);
+    console.log(resizeSize.value);
 
     if (resizeFormIsValid()) {
       btnSubmitResize.removeAttribute('disabled');
@@ -365,12 +367,15 @@
     filterImage.className = 'filter-image-preview ' + setFilter();
   });
 
-  window.addEventListener('resizerchange', function() {
-    var currentConstraint = currentResizer.getConstraint();
+  function setConstraint() {
+    var resizeData = currentResizer.getConstraint();
+    resizeX.value = Math.round(resizeData.x);
+    resizeY.value = Math.round(resizeData.y);
+    resizeSize.value = Math.round(resizeData.side);
+  }
 
-    resizeSize.value = currentConstraint.side.toString();
 
-  });
+  window.addEventListener('resizerchange', setConstraint);
 
   cleanupResizer();
   updateBackground();
