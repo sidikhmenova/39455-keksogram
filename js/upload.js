@@ -170,7 +170,8 @@
    * и показывается форма кадрирования.
    * @param {Event} evt
    */
-  uploadForm.onchange = function(evt) {
+  uploadForm.addEventListener('change', function(evt){
+  //uploadForm.onchange = function(evt) {
     var element = evt.target;
     if (element.id === 'upload-file') {
       // Проверка типа загружаемого файла, тип должен быть изображением
@@ -202,13 +203,14 @@
         showMessage(Action.ERROR);
       }
     }
-  };
+  });
   /**
    * Обработка сброса формы кадрирования. Возвращает в начальное состояние
    * и обновляет фон.
    * @param {Event} evt
    */
-  resizeForm.onreset = function(evt) {
+  resizeForm.addEventListener('reset', function(evt) {
+  //resizeForm.onreset = function(evt) {
     evt.preventDefault();
 
     cleanupResizer();
@@ -216,14 +218,15 @@
 
     resizeForm.classList.add('invisible');
     uploadForm.classList.remove('invisible');
-  };
+  });
 
   /**
    * Обработка отправки формы кадрирования. Если форма валидна, экспортирует
    * кропнутое изображение в форму добавления фильтра и показывает ее.
    * @param {Event} evt
    */
-  resizeForm.onsubmit = function(evt) {
+  resizeForm.addEventListener('submit', function(evt) {
+  //resizeForm.onsubmit = function(evt) {
     evt.preventDefault();
 
     if (resizeFormIsValid()) {
@@ -238,7 +241,7 @@
     // Показ сообщения об ошибке, если не валидны значения для кадрирования изображения
       showMessage(Action.resizeForm);
     }
-  };
+  });
 
   /**
    * Блокировка кнопки кадрирования, если введены не валидные данные
@@ -246,10 +249,25 @@
 
   var btnSubmitResize = resizeForm.querySelector('[type="submit"]');
 
-  resizeForm.onchange = function() {
-    var resizeSize = resizeForm['resize-size'].value;
-    var resizeX = resizeForm['resize-x'].value;
-    var resizeY = resizeForm['resize-x'].value;
+  var resizeSize = resizeForm['resize-size'].value;
+  var resizeX = resizeForm['resize-x'].value;
+  var resizeY = resizeForm['resize-x'].value;
+
+  var evt = document.createEvent('CustomEvent');
+  evt.initCustomEvent('resizerchange', false, false, {});
+
+  window.addEventListener('resizerchange', getResizerConstraints);
+
+  function getResizerConstraints() {
+    var resizeCh = currentResizer.getConstraint();
+
+    resizeX.value = resizeCh.x;
+    resizeY.value = resizeCh.y;
+    resizeSize.value = resizeCh.side;
+  }
+
+  resizeForm.addEventListener('change', function() {
+  //resizeForm.onchange = function() {
 
     var resizeSizeX = document.getElementById('resize-x');
     var resizeSizeY = document.getElementById('resize-y');
@@ -274,7 +292,7 @@
         resizeSizeY.classList.add('input-error');
       }
     }
-  };
+  });
 
   /*Работаем с фильтром*/
 
@@ -319,19 +337,21 @@
    * Сброс формы фильтра. Показывает форму кадрирования.
    * @param {Event} evt
    */
-  filterForm.onreset = function(evt) {
+  filterForm.addEventListener('reset', function(evt) {
+  //filterForm.onreset = function(evt) {
     evt.preventDefault();
 
     filterForm.classList.add('invisible');
     resizeForm.classList.remove('invisible');
-  };
+  });
 
   /**
    * Отправка формы фильтра. Возвращает в начальное состояние, предварительно
    * записав сохраненный фильтр в cookie.
    * @param {Event} evt
    */
-  filterForm.onsubmit = function(evt) {
+  filterForm.addEventListener('submit', function(evt) {
+  //filterForm.onsubmit = function(evt) {
     evt.preventDefault();
 
     cleanupResizer();
@@ -340,18 +360,19 @@
 
     filterForm.classList.add('invisible');
     uploadForm.classList.remove('invisible');
-  };
+  });
 
   /**
    * Обработчик изменения фильтра. Добавляет класс из filterMap соответствующий
    * выбранному значению в форме.
    */
-  filterForm.onchange = function() {
+  filterForm.addEventListener('change', function() {
+  //filterForm.onchange = function() {
     // Класс перезаписывается, а не обновляется через classList потому что нужно
     // убрать предыдущий примененный класс. Для этого нужно или запоминать его
     // состояние или просто перезаписывать.
     filterImage.className = 'filter-image-preview ' + setFilter();
-  };
+  });
 
   cleanupResizer();
   updateBackground();

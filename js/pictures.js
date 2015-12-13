@@ -8,7 +8,7 @@
   var template = document.querySelector('#picture-template');
   var container = document.querySelector('.pictures');
   var filter = document.querySelector('.filters');
-  var activeFilter = 'filter-all';// ID фильтра по-умолчанию
+  var activeFilter = 'filter-popular';// ID фильтра по-умолчанию
   var images = [];
   var filteredImages = [];
   var currentPage = 0;
@@ -38,7 +38,6 @@
     var viewportSize = window.innerHeight;
 
     // Анализируем положение футера относительно экрана (вьюпорта)
-    //if (footerCoordinates.bottom - viewportSize <= footerCoordinates.height) {
     if (footerCoordinates.bottom <= viewportSize) {
       if (currentPage < Math.ceil(filteredImages.length / PAGE_SIZE)) {
         renderImage(filteredImages, ++currentPage);
@@ -104,12 +103,14 @@
         });
         // фильтруем массив с датами и отбираем изображения за 3 месяца
         filteredImages = filteredImages.filter(selectedDay);
+        activeFilter = id;
         break;
       case 'filter-discussed':
         // Для показа популярных оизображений - сортируем по порядку убывания популярности
         filteredImages = filteredImages.sort(function(a, b) {
           return b.comments - a.comments;
         });
+        activeFilter = id;
         break;
     }
 
