@@ -251,7 +251,7 @@
 
   var resizeSize = resizeForm['resize-size'];
   var resizeX = resizeForm['resize-x'];
-  var resizeY = resizeForm['resize-x'];
+  var resizeY = resizeForm['resize-y'];
 
   //var evt = document.createEvent('CustomEvent');
 
@@ -264,7 +264,9 @@
     //var resizeSizeInput = document.getElementById('resize-size');
 
     currentResizer.setConstraint(+resizeX.value, +resizeY.value, +resizeSize.value);
-    console.log(resizeSize.value);
+    console.log('resizeSize' + resizeSize.value);
+    console.log('resizeX' + resizeX.value);
+    console.log('resizeY' + resizeY.value);
 
     if (resizeFormIsValid()) {
       btnSubmitResize.removeAttribute('disabled');
@@ -371,6 +373,7 @@
     var resizeData = currentResizer.getConstraint();
     resizeX.value = Math.round(resizeData.x);
     resizeY.value = Math.round(resizeData.y);
+    console.log('resizeY' + resizeY.value);
     resizeSize.value = Math.round(resizeData.side);
   }
 
